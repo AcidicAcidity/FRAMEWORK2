@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "brand": "Toyota",
+        "model": "Camry",
+        "number": "А123ВС777",
+        "owner": "Иван Петров",
+        "price_per_hour": 500,
+        "is_available": true
+    },
+    {
+        "id": 2,
+        "brand": "Kia",
+        "model": "Rio",
+        "number": "В456ОР199",
+        "owner": "Анна Смирнова",
+        "price_per_hour": 350,
+        "is_available": true
+    },
+    {
+        "id": 3,
+        "brand": "Hyundai",
+        "model": "Solaris",
+        "number": "Е789КХ777",
+        "owner": "Иван Петров",
+        "price_per_hour": 300,
+        "is_available": true
+    },
+    {
+        "id": 4,
+        "brand": "Skoda",
+        "model": "Octavia",
+        "number": "М321ТН799",
+        "owner": "Пётр Сидоров",
+        "price_per_hour": 450,
+        "is_available": false
+    }
+]
