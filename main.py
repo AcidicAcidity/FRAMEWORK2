@@ -3,9 +3,9 @@
 Консольное приложение: точка запуска и пользовательские сценарии.
 Данные приложения — коллекции объектов Car, User и Trip.
 """
-import sys
-from typing import Optional
 
+from typing import Optional
+import sys
 from models import Car, User, Trip
 from models.cars import (
     filter_cars_by_price,
