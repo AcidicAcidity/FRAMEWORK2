@@ -1,10 +1,13 @@
 """Система совместного использования автомобилей (каршеринг).
 
 Консольное приложение: точка запуска и пользовательские сценарии.
+Данные приложения — коллекции объектов Car, User и Trip.
 """
 import sys
+from typing import Optional
 
-from cars import (
+from models import Car, User, Trip
+from models.cars import (
     filter_cars_by_price,
     find_car,
     find_car_by_id,
@@ -12,14 +15,7 @@ from cars import (
     show_cars,
     sort_cars,
 )
-from storage import (
-    StorageError,
-    load_cars,
-    load_trips,
-    save_cars,
-    save_trips,
-)
-from trips import (
+from models.trips import (
     cancel_trip,
     check_availability,
     create_trip,
@@ -28,6 +24,21 @@ from trips import (
     get_statistics,
     is_car_available,
     show_trips,
+)
+from models.users import (
+    add_user,
+    find_user,
+    find_user_by_id,
+    show_users,
+)
+from storage import (
+    StorageError,
+    load_cars,
+    load_trips,
+    load_users,
+    save_cars,
+    save_trips,
+    save_users,
 )
 from utils import input_date, input_int, input_str
 
@@ -44,26 +55,49 @@ MENU = """
 8. Оформить поездку
 9. Отменить поездку
 10. Показать поездки
-11. Статистика
+11. Показать пользователей
+12. Добавить пользователя
+13. Найти пользователя
+14. Статистика
 0. Выход
 """
 
 
-def search_cars(cars: list[dict]) -> None:
+def ask_car(cars: list[Car]) -> Optional[Car]:
+    """Запросить ID автомобиля и вернуть найденный объект Car."""
+    car_id = input_int("ID автомобиля: ")
+    car = find_car_by_id(cars, car_id)
+    if car is None:
+        print(f"Ошибка: автомобиль с ID {car_id} не найден.")
+    return car
+
+
+def ask_user(users: list[User], prompt: str) -> Optional[User]:
+    """Запросить ID пользователя и вернуть найденный объект User."""
+    user_id = input_int(prompt)
+    user = find_user_by_id(users, user_id)
+    if user is None:
+        print(f"Ошибка: пользователь с ID {user_id} не найден.")
+    return user
+
+
+def search_cars(cars: list[Car]) -> None:
     """Сценарий: поиск автомобиля по подстроке."""
-    found = find_car(cars, input_str("Марка, модель или номер: "))
-    show_cars(found)
+    show_cars(find_car(cars, input_str("Марка, модель или номер: ")))
 
 
-def show_cars_up_to_price(cars: list[dict]) -> None:
+def show_cars_up_to_price(cars: list[Car]) -> None:
     """Сценарий: отбор автомобилей по предельной цене."""
     max_price = input_int("Максимальная цена за час, руб.: ", 1)
     show_cars(filter_cars_by_price(cars, max_price))
 
 
-def register_new_car(cars: list[dict]) -> None:
+def register_new_car(cars: list[Car], users: list[User]) -> None:
     """Сценарий: регистрация автомобиля владельцем."""
-    owner = input_str("Имя владельца: ")
+    show_users(users)
+    owner = ask_user(users, "ID владельца: ")
+    if owner is None:
+        return
     brand = input_str("Марка: ")
     model = input_str("Модель: ")
     number = input_str("Государственный номер: ")
@@ -73,72 +107,107 @@ def register_new_car(cars: list[dict]) -> None:
     except ValueError as error:
         print(f"Ошибка: {error}.")
         return
-    print(f"Автомобиль {car['brand']} {car['model']} ({car['number']}) "
-          f"зарегистрирован владельцем {car['owner']}.")
+    print(f"Автомобиль {car.full_name} ({car.number}) "
+          f"зарегистрирован владельцем {car.owner.name}.")
 
 
-def check_car_on_date(cars: list[dict], trips: list[dict]) -> None:
+def check_car_on_date(cars: list[Car], trips: list[Trip]) -> None:
     """Сценарий: проверка доступности автомобиля на дату."""
-    car_id = input_int("ID автомобиля: ")
-    trip_date = input_date("Дата (ДД.ММ.ГГГГ): ")
-    if find_car_by_id(cars, car_id) is None:
-        print(f"Ошибка: автомобиль с ID {car_id} не найден.")
-        return
-    print(check_availability(is_car_available(cars, trips, car_id,
-                                              trip_date)))
-
-
-def show_price(cars: list[dict]) -> None:
-    """Сценарий: расчёт стоимости поездки."""
-    car = find_car_by_id(cars, input_int("ID автомобиля: "))
+    car = ask_car(cars)
     if car is None:
-        print("Ошибка: автомобиль не найден.")
+        return
+    trip_date = input_date("Дата (ДД.ММ.ГГГГ): ")
+    print(check_availability(is_car_available(trips, car, trip_date)))
+
+
+def show_price(cars: list[Car]) -> None:
+    """Сценарий: расчёт стоимости поездки."""
+    car = ask_car(cars)
+    if car is None:
         return
     hours = input_int("Длительность, ч: ", 1)
-    print(get_price_description(hours, car["price_per_hour"]))
+    print(get_price_description(car, hours))
 
 
-def create_new_trip(cars: list[dict], trips: list[dict]) -> None:
-    """Сценарий: оформление поездки."""
-    car_id = input_int("ID автомобиля: ")
-    user = input_str("Имя пользователя (арендатора): ")
+def create_new_trip(
+    trips: list[Trip],
+    cars: list[Car],
+    users: list[User],
+) -> None:
+    """Сценарий: оформление поездки.
+
+    Находит объекты Car и User, проверяет доступность и вызывает
+    create_trip(), который создаёт объект Trip.
+    """
+    car = ask_car(cars)
+    if car is None:
+        return
+    user = ask_user(users, "ID пользователя (арендатора): ")
+    if user is None:
+        return
     trip_date = input_date("Дата поездки (ДД.ММ.ГГГГ): ")
     hours = input_int("Длительность, ч: ", 1)
     try:
-        trip = create_trip(cars, trips, car_id, user, trip_date, hours)
+        trip = create_trip(trips, car, user, trip_date, hours)
     except ValueError as error:
         print(f"Ошибка: {error}.")
         return
     if trip is None:
         print(check_availability(False))
         return
-    print("Поездка оформлена.\n")
-    display_trip(find_car_by_id(cars, car_id), trip)
+    print(f"Поездка №{trip.id} оформлена.\n")
+    display_trip(trip)
 
 
-def cancel_existing_trip(trips: list[dict]) -> None:
+def cancel_existing_trip(trips: list[Trip]) -> None:
     """Сценарий: отмена поездки."""
     trip_id = input_int("ID поездки: ")
     if cancel_trip(trips, trip_id):
         print(f"Поездка №{trip_id} отменена.")
     else:
-        print(f"Ошибка: поездка №{trip_id} не найдена.")
+        print(f"Ошибка: активная поездка №{trip_id} не найдена.")
 
 
-def show_stats(cars: list[dict], trips: list[dict]) -> None:
+def add_new_user(users: list[User]) -> None:
+    """Сценарий: добавление пользователя."""
+    name = input_str("Имя: ")
+    email = input_str("Электронная почта: ")
+    try:
+        user = add_user(users, name, email)
+    except ValueError as error:
+        print(f"Ошибка: {error}.")
+        return
+    print(f"Пользователь добавлен: {user.id}. {user}")
+
+
+def search_users(users: list[User]) -> None:
+    """Сценарий: поиск пользователя по имени или почте."""
+    found = find_user(users, input_str("Имя или почта: "))
+    show_users(found)
+
+
+def show_stats(
+    cars: list[Car],
+    users: list[User],
+    trips: list[Trip],
+) -> None:
     """Сценарий: вывод статистики."""
-    stats = get_statistics(cars, trips)
+    stats = get_statistics(cars, users, trips)
     print(f"Автомобилей: {stats['cars']} "
           f"(доступно: {stats['available_cars']})")
-    print(f"Поездок: {stats['trips']}")
-    print(f"Выручка: {stats['revenue']} руб.")
+    print(f"Пользователей: {stats['users']}")
+    print(f"Поездок: {stats['trips']} "
+          f"(активных: {stats['active_trips']}, "
+          f"отменённых: {stats['cancelled_trips']})")
+    print(f"Выручка по активным поездкам: {stats['revenue']} руб.")
 
 
 def main() -> None:
     """Точка запуска приложения: загрузка данных и цикл меню."""
     try:
-        cars = load_cars()
-        trips = load_trips()
+        users = load_users()
+        cars = load_cars(users)
+        trips = load_trips(cars, users)
     except StorageError as error:
         print(f"Ошибка данных: {error}.")
         sys.exit(1)
@@ -148,13 +217,16 @@ def main() -> None:
         "2": lambda: search_cars(cars),
         "3": lambda: show_cars_up_to_price(cars),
         "4": lambda: show_cars(sort_cars(cars)),
-        "5": lambda: register_new_car(cars),
+        "5": lambda: register_new_car(cars, users),
         "6": lambda: check_car_on_date(cars, trips),
         "7": lambda: show_price(cars),
-        "8": lambda: create_new_trip(cars, trips),
+        "8": lambda: create_new_trip(trips, cars, users),
         "9": lambda: cancel_existing_trip(trips),
-        "10": lambda: show_trips(cars, trips),
-        "11": lambda: show_stats(cars, trips),
+        "10": lambda: show_trips(trips),
+        "11": lambda: show_users(users),
+        "12": lambda: add_new_user(users),
+        "13": lambda: search_users(users),
+        "14": lambda: show_stats(cars, users, trips),
     }
 
     try:
@@ -172,6 +244,7 @@ def main() -> None:
         print("\nЗавершение работы.")
 
     try:
+        save_users(users)
         save_cars(cars)
         save_trips(trips)
     except StorageError as error:

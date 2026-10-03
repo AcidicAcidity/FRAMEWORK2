@@ -2,15 +2,25 @@
     {
         "id": 1,
         "car_id": 1,
-        "user": "Мария Кузнецова",
+        "user_id": 4,
         "trip_date": "2026-10-10",
-        "hours": 8
+        "hours": 8,
+        "is_cancelled": false
     },
     {
         "id": 2,
         "car_id": 2,
-        "user": "Пётр Сидоров",
+        "user_id": 3,
         "trip_date": "2026-10-12",
-        "hours": 30
+        "hours": 30,
+        "is_cancelled": false
+    },
+    {
+        "id": 3,
+        "car_id": 3,
+        "user_id": 2,
+        "trip_date": "2026-10-10",
+        "hours": 4,
+        "is_cancelled": true
     }
 ]
