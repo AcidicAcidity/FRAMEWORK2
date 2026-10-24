@@ -1,2 +1,4 @@
 [flake8]
-exclude = .git,__pycache__,venv,.venv
+exclude = venv,.venv,.git,__pycache__,migrations
+per-file-ignores =
+    carsharing/settings.py:E501
