@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Поездки – Каршеринг
+{% endblock %}
+
+{% block content %}
+    <h1>Поездки</h1>
+
+    <p>
+        Всего поездок: {{ trips|length }}
+    </p>
+
+    <ul class="list-group">
+        {% for trip in trips %}
+            <li class="list-group-item d-flex justify-content-between">
+                <a href="{% url 'trips:detail' trip.id %}">
+                    №{{ trip.id }}: {{ trip.car.full_name }} –
+                    {{ trip.trip_date|date:"d.m.Y" }},
+                    {{ trip.user.name }}
+                </a>
+                {% include "trips/includes/trip_status.html" %}
+            </li>
+        {% empty %}
+            <li class="list-group-item">Поездки не найдены.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,24 @@
+body {
+    min-height: 100vh;
+}
+
+.carsharing-logo {
+    width: 120px;
+    height: auto;
+    margin: 1rem 0 0.5rem;
+}
+
+.car-card {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.trip-status {
+    font-weight: 600;
+}
+
+.trip-status-cancelled {
+    text-decoration: line-through;
+}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Главная – Каршеринг
+{% endblock %}
+
+{% block content %}
+    <h1 class="display-4">Каршеринг</h1>
+
+    <p class="lead">
+        Система совместного использования автомобилей.
+    </p>
+    <p>
+        Владельцы сдают автомобили в краткосрочную аренду,
+        пользователи быстро находят машину и оформляют поездку.
+    </p>
+    <p>Основные разделы:</p>
+    <a href="{% url 'cars:list' %}" class="btn btn-primary me-2">
+        Автомобили
+    </a>
+    <a href="{% url 'trips:list' %}" class="btn btn-secondary">
+        Поездки
+    </a>
+{% endblock %}

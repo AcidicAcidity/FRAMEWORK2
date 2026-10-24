@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if car %}
+        {{ car.full_name }} – Каршеринг
+    {% else %}
+        Автомобиль не найден – Каршеринг
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if car %}
+        <div class="card car-card">
+            <div class="card-body">
+                <h1 class="card-title">{{ car.full_name }}</h1>
+
+                <p class="card-text">
+                    <strong>ID:</strong> {{ car.id }}
+                </p>
+                <p class="card-text">
+                    <strong>Номер:</strong> {{ car.number }}
+                </p>
+                <p class="card-text">
+                    <strong>Владелец:</strong> {{ car.owner.name }}
+                </p>
+                <p class="card-text">
+                    <strong>Стоимость:</strong>
+                    {{ car.price_per_hour }} руб./ч
+                </p>
+
+                <ul class="list-group mb-3">
+                    {% for item in prices %}
+                        <li class="list-group-item">
+                            {{ item.hours }} ч. – {{ item.price }} руб.
+                            {% if item.discount %}
+                                (скидка {{ item.discount }}%)
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <p class="card-text">
+                    Доступность на текущую дату:
+                    {% if not car.is_available %}
+                        <span class="badge bg-secondary">
+                            недоступен для аренды
+                        </span>
+                    {% elif is_free_today %}
+                        <span class="badge bg-success">свободен</span>
+                    {% else %}
+                        <span class="badge bg-danger">занят</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Автомобиль не найден</h1>
+        <p>Автомобиль с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a
+        href="{% url 'cars:list' %}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        ← к списку автомобилей
+    </a>
+{% endblock %}

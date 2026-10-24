@@ -1,0 +1,25 @@
+<article class="card car-card mb-3">
+    <div class="card-body">
+        <h2 class="card-title h4">
+            {{ car.full_name|default:"Без названия" }}
+        </h2>
+
+        <p class="card-text">
+            Номер: {{ car.number }}<br>
+            Стоимость: {{ car.price_per_hour }} руб./ч
+        </p>
+
+        {% if car.is_available %}
+            <span class="badge bg-success">доступен</span>
+        {% else %}
+            <span class="badge bg-secondary">недоступен</span>
+        {% endif %}
+
+        <a
+            href="{% url 'cars:detail' car.id %}"
+            class="btn btn-primary ms-2"
+        >
+            Подробнее
+        </a>
+    </div>
+</article>

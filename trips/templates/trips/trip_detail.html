@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if trip %}
+        Поездка №{{ trip.id }} – Каршеринг
+    {% else %}
+        Поездка не найдена – Каршеринг
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if trip %}
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">Поездка №{{ trip.id }}</h1>
+
+                <p class="card-text">
+                    <strong>Автомобиль:</strong>
+                    <a href="{% url 'cars:detail' trip.car.id %}">
+                        {{ trip.car.full_name }} ({{ trip.car.number }})
+                    </a>
+                </p>
+                <p class="card-text">
+                    <strong>Владелец:</strong> {{ trip.car.owner.name }}
+                </p>
+                <p class="card-text">
+                    <strong>Арендатор:</strong> {{ trip.user.name }}
+                </p>
+                <p class="card-text">
+                    <strong>Дата:</strong>
+                    {{ trip.trip_date|date:"d.m.Y" }}
+                </p>
+                <p class="card-text">
+                    <strong>Длительность:</strong> {{ trip.hours }} ч.
+                </p>
+                <p class="card-text">
+                    <strong>Стоимость:</strong> {{ trip.price }} руб.
+                </p>
+                <p class="card-text">
+                    <strong>Статус:</strong>
+                    {% include "trips/includes/trip_status.html" %}
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Поездка не найдена</h1>
+        <p>Поездка с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a
+        href="{% url 'trips:list' %}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        ← к списку поездок
+    </a>
+{% endblock %}
